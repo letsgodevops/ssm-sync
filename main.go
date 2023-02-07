@@ -48,7 +48,7 @@ func main() {
 	region := flag.String("region", "eu-west-1", "AWS Region")
 	ssmKeyName := flag.String("ssm", "", "SSM Key name")
 	filePath := flag.String("file", "", "File path on disk")
-	env := flag.String("env", "", "Environment name")
+	kmsKeyAlias := flag.String("kmsKeyAlias", "", "KMS key alias name (would use alias/<name> in KMS)")
 
 	verbose := flag.Bool("verbose", false, "Enable verbose output")
 
@@ -97,7 +97,7 @@ func main() {
 			Key:         *ssmKeyName,
 			Value:       string(data),
 			Application: "file-sync",
-			Environment: *env,
+			KmsKeyAlias: *kmsKeyAlias,
 		})
 		if err != nil {
 			logrus.WithError(err).Errorf("Error while uploading file to ssm %s", *ssmKeyName)

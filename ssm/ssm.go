@@ -20,7 +20,7 @@ func (c *Client) PutObject(object *types.PutObjectInput) error {
 	}
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/ssm/#PutParameterInput
 	putParameterInput := &ssm.PutParameterInput{
-		KeyId: aws.String("alias/" + object.Environment),
+		KeyId: aws.String("alias/" + object.KmsKeyAlias),
 		// we decided to use path based keys without `/` at the begining
 		// so we need to add it here
 		Name:      aws.String("/" + object.Key),

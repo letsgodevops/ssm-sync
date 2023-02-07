@@ -5,7 +5,7 @@ type PutObjectInput struct {
 	Key         string
 	Value       string
 	Application string
-	Environment string
+	KmsKeyAlias string
 }
 
 // GetObjectInput structure for GetObject
