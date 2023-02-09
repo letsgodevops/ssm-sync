@@ -10,7 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slog"
 )
 
 func checkDefaults() {
@@ -34,7 +34,7 @@ func parameterFound(err error) (bool, error) {
 		if awsErr, ok := err.(awserr.Error); ok {
 			fmt.Printf("Error: '%s'\n", awsErr.Code())
 			if awsErr.Code() == "ParameterNotFound" {
-				logrus.Debug("Parameter not found in SSM")
+				slog.Debug("Parameter not found in SSM")
 				return false, nil
 			}
 		}
@@ -43,7 +43,7 @@ func parameterFound(err error) (bool, error) {
 }
 
 func main() {
-	logrus.Infof("Starting ssm-sync, version: %s", version)
+	slog.Info(fmt.Sprintf("Starting ssm-sync, version: %s", version))
 
 	region := flag.String("region", "eu-west-1", "AWS Region")
 	ssmKeyName := flag.String("ssm", "", "SSM Key name")
@@ -57,14 +57,9 @@ func main() {
 
 	checkDefaults()
 
-	logrus.SetLevel(logrus.WarnLevel)
-	if *verbose {
-		logrus.SetLevel(logrus.InfoLevel)
-	}
-
 	ssmClient, err := ssm.New(*region, aws.Config{})
 	if err != nil {
-		logrus.WithError(err).Errorln("Failed to obtain AWS:SSM client")
+		slog.Error("Failed to obtain AWS:SSM client", err)
 		os.Exit(1)
 	}
 
@@ -73,7 +68,7 @@ func main() {
 	})
 	ssmParamFound, err := parameterFound(err)
 	if err != nil {
-		logrus.WithError(err).Errorf("Failed to read parameter '%s'", *ssmKeyName)
+		slog.Error(fmt.Sprintf("Failed to read parameter '%s'", *ssmKeyName), err)
 		os.Exit(1)
 	}
 
@@ -81,15 +76,17 @@ func main() {
 		// Overwrite file on disk
 		err := os.WriteFile(*filePath, []byte(ssmValue.Value), 0400)
 		if err != nil {
-			logrus.WithError(err).Errorf("Error while writing to file %s", *filePath)
+			slog.Error(fmt.Sprintf("Error while writing to file %s", *filePath), err)
 			os.Exit(1)
 		}
-		logrus.Info("Downloading of file content finished successfully")
+		if *verbose {
+			slog.Info("Downloading of file content finished successfully")
+		}
 	} else {
 		// Upload file content
 		data, err := os.ReadFile(*filePath)
 		if err != nil {
-			logrus.WithError(err).Errorf("Error while reading the file %s", *filePath)
+			slog.Error(fmt.Sprintf("Error while reading the file %s", *filePath), err)
 			os.Exit(1)
 		}
 
@@ -100,9 +97,11 @@ func main() {
 			KmsKeyAlias: *kmsKeyAlias,
 		})
 		if err != nil {
-			logrus.WithError(err).Errorf("Error while uploading file to ssm %s", *ssmKeyName)
+			slog.Error(fmt.Sprintf("Error while uploading file to ssm %s", *ssmKeyName), err)
 			os.Exit(1)
 		}
-		logrus.Info("File uploaded successfully")
+		if *verbose {
+			slog.Info("File uploaded successfully")
+		}
 	}
 }
