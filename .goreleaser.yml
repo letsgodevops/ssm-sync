@@ -1,0 +1,23 @@
+project_name: ssm-sync
+
+archives:
+  - id: default
+    builds:
+      - ssm-sync
+    format: binary
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+
+builds:
+  - id: ssm-sync
+    main: .
+    binary: ssm-sync
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+changelog:
+  skip: true
+
+env:
+  - CGO_ENABLED=0
